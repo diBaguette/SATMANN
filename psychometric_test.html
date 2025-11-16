@@ -77,7 +77,7 @@
 
     async function createParticipant(document_number, age, gender) {
       try {
-        const res = await fetch("https://satmann.onrender.com/api/participants", {
+        const res = await fetch("https://satmann.onrender.com", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
