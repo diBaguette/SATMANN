@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SATMANN - Prueba de Atención</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Inter,system-ui,sans-serif;
+      background:linear-gradient(180deg,#e0f2ff,#ffffff);
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .menu{
+      text-align:center;
+      background:white;
+      border-radius:16px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.1);
+      padding:40px 60px;
+    }
+    h1{
+      margin:0;
+      font-size:2rem;
+      color:#2563eb;
+    }
+    button{
+      margin-top:30px;
+      background:#2563eb;
+      color:white;
+      border:none;
+      border-radius:8px;
+      padding:12px 24px;
+      font-size:1rem;
+      cursor:pointer;
+      transition:background 0.2s;
+    }
+    button:hover{
+      background:#1e4fc9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de menú -->
+  <div class="menu" id="menuScreen">
+    <h1>SATMANN</h1>
+    <button id="startBtn">Comenzar</button>
+  </div>
+
+  <!-- Pantalla de consentimiento -->
+  <div id="consentScreen" style="display:none;text-align:center;background:white;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.1);padding:40px 60px;">
+    <p style="font-size:1rem;color:#111;max-width:360px;margin:0 auto;">
+      La información obtenida de sus datos será guardada con fines académicos, ¿está usted de acuerdo?
+    </p>
+    <button id="agreeBtn" style="margin-top:30px;background:#2563eb;color:white;border:none;border-radius:8px;padding:12px 24px;font-size:1rem;cursor:pointer;">
+      De acuerdo
+    </button>
+  </div>
+
+  <script>
+    /* -------------------------------------------------------------
+       1. VARIABLES Y REFERENCIAS
+    ------------------------------------------------------------- */
+
+    const startBtn = document.getElementById('startBtn');
+    const menuScreen = document.getElementById('menuScreen');
+    const consentScreen = document.getElementById('consentScreen');
+
+    // Variable global donde guardaremos el ID del participante
+    let participantId = null;
+
+    /* -------------------------------------------------------------
+       2. FUNCIÓN PARA CONECTAR CON EL BACKEND
+    ------------------------------------------------------------- */
+
+    async function createParticipant(document_number, age, gender) {
+      try {
+        const res = await fetch("http://localhost:4000/api/participants", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            document_number,
+            age: Number(age),
+            gender
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("No se pudo crear el participante.");
+        }
+
+        const data = await res.json();
+        return data; // <- contiene { id, document_number, age, gender, created_at }
+
+      } catch (error) {
+        console.error(error);
+        alert("Error al conectar con el servidor.");
+      }
+    }
+
+    /* -------------------------------------------------------------
+       3. PANTALLA DEL FORMULARIO
+    ------------------------------------------------------------- */
+
+    const formScreen = document.createElement('div');
+    formScreen.style.display = 'none';
+    formScreen.style.textAlign = 'center';
+    formScreen.style.background = 'white';
+    formScreen.style.borderRadius = '16px';
+    formScreen.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+    formScreen.style.padding = '40px 60px';
+
+    formScreen.innerHTML = `
+      <h2 style="margin-top:0;color:#2563eb;">Datos del participante</h2>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <input id="docInput" type="text" placeholder="Número de documento" style="padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem;" />
+        <input id="ageInput" type="number" placeholder="Edad" style="padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem;" />
+        <select id="genderInput" style="padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem;">
+          <option value="" disabled selected>Género</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <button id="formNextBtn" style="margin-top:30px;background:#2563eb;color:white;border:none;border-radius:8px;padding:12px 24px;font-size:1rem;cursor:pointer;">Continuar</button>
+    `;
+
+    document.body.appendChild(formScreen);
+
+
+    /* -------------------------------------------------------------
+       4. EVENTOS DE NAVEGACIÓN ENTRE PANTALLAS
+    ------------------------------------------------------------- */
+
+    startBtn.addEventListener('click', () => {
+      menuScreen.style.display = 'none';
+      consentScreen.style.display = 'block';
+    });
+
+    document.getElementById('agreeBtn').addEventListener('click', () => {
+      consentScreen.style.display = 'none';
+      formScreen.style.display = 'block';
+    });
+
+    /* -------------------------------------------------------------
+       5. ENVÍO REAL DE DATOS AL BACKEND
+    ------------------------------------------------------------- */
+
+    document.addEventListener('click', async (e) => {
+      if (e.target && e.target.id === 'formNextBtn') {
+
+        const doc = document.getElementById('docInput').value.trim();
+        const age = document.getElementById('ageInput').value.trim();
+        const gender = document.getElementById('genderInput').value;
+
+        if (!doc || !age || !gender) {
+          alert('Por favor complete todos los campos.');
+          return;
+        }
+
+        // 🔥 Enviar al backend
+        const participant = await createParticipant(doc, age, gender);
+
+        if (participant) {
+          participantId = participant.id; // guardamos el ID
+          alert("Datos registrados exitosamente.\nID del participante: " + participantId);
+        }
+
+        // Aquí continuará luego la prueba SATMANN
+      }
+    });
+  </script>
+</body>
+</html>
