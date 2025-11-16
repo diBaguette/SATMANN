@@ -90,7 +90,7 @@ app.get('/api/participants/:id/results', async (req, res) => {
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Cualquier otra ruta va a tu HTML
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/psychometric_test.html'));
 });
 
