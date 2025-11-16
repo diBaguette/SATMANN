@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
+const path = require('path');
 const cors = require('cors');
 const { Pool } = require('pg');
 
@@ -41,6 +42,7 @@ const initDb = async () => {
   `);
 };
 
+// Rutas API
 app.post('/api/participants', async (req, res) => {
   try {
     const { document_number, age, gender } = req.body;
@@ -82,6 +84,14 @@ app.get('/api/participants/:id/results', async (req, res) => {
     console.error(err);
     return res.status(500).json({ error: 'server error' });
   }
+});
+
+// ✅ Servir frontend
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Cualquier otra ruta va a tu HTML
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/psychometric_test.html'));
 });
 
 const start = async () => {
